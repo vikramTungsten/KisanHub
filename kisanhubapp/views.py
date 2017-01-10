@@ -1,32 +1,12 @@
+import json
 import urllib2
 
+from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import render
-
 # Create your views here.
 from kisanhubapp.models import Regions, DataType, DataDownloadLinks,Data
 
-dict = {
-    'UK-Max': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmax/date/UK.txt',
-    'UK-Min': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmin/date/UK.txt',
-    'UK-Mean': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmean/date/UK.txt',
-    'UK-Sunshine': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Sunshine/date/UK.txt',
-    'UK-Rainfall': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Rainfall/date/UK.txt',
-    'England-Max': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmax/date/England.txt',
-    'England-Min': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmin/date/England.txt',
-    'England-Mean': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmean/date/England.txt',
-    'England-Sunshine': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Sunshine/date/England.txt',
-    'England-Rainfall': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Rainfall/date/England.txt',
-    'Wales-Max': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmax/date/Wales.txt',
-    'Wales-Min': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmin/date/Wales.txt',
-    'Wales-Mean': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmean/date/Wales.txt',
-    'Wales-Sunshine': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Sunshine/date/Wales.txt',
-    'Wales-Rainfall': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Rainfall/date/Wales.txt',
-    'Scotland-Max': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmax/date/Scotland.txt',
-    'Scotland-Min': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmin/date/Scotland.txt',
-    'Scotland-Mean': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Tmean/date/Scotland.txt',
-    'Scotland-Sunshine': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Sunshine/date/Scotland.txt',
-    'Scotland-Rainfall': 'http://www.metoffice.gov.uk/pub/data/weather/uk/climate/datasets/Rainfall/date/Scotland.txt'
-}
 
 
 def index(request):
@@ -52,7 +32,7 @@ def download(request):
         con = urllib2.urlopen(req)
         data = con.read()
 
-        lines=data.split('\n')[7:]
+        lines=data.split('\n')[8:]
         for line in lines[:5]:
             templist = []
             datapoints=line.split(' ')
@@ -82,6 +62,72 @@ def download(request):
                     aut=templist[16],
                     ann=templist[17],
                 ).save()
+        data = {'success':'true','message':'data downloaded successfully'}
+    except Exception,e:
+        print 'Exception|download|view.py',e
+        data = {'success': 'true','message':'servier error'}
+    return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+def get_region_datalist(request):
+    try:
+        start = request.GET.get('start')
+        length = int(request.GET.get('length')) + int(request.GET.get('start'))
+
+        try:
+            dataDownloadLinks = DataDownloadLinks.objects.get(region=request.GET.get('region'),
+                                                          datatype=request.GET.get('datatype'))
+        except Exception:
+            dataList=[]
+            data = {'iTotalRecords': 0, 'iTotalDisplayRecords': len(dataList), 'aaData': dataList}
+            return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+        dataListQR=Data.objects.filter(datadownload=dataDownloadLinks)[start:length]
+
+        print 'dataListQR',dataListQR
+        total_record = Data.objects.filter(datadownload=dataDownloadLinks).count()
+        dataList=[]
+        for data in dataListQR:
+            tempList = []
+            tempList.append(data.year)
+            tempList.append(data.jan)
+            tempList.append(data.feb)
+            tempList.append(data.mar)
+            tempList.append(data.apr)
+            tempList.append(data.may)
+            tempList.append(data.jun)
+            tempList.append(data.jul)
+            tempList.append(data.aug)
+            tempList.append(data.sep)
+            tempList.append(data.oct)
+            tempList.append(data.nov)
+            tempList.append(data.dec)
+            tempList.append(data.win)
+            tempList.append(data.spr)
+            tempList.append(data.sum)
+            tempList.append(data.aut)
+            tempList.append(data.ann)
+            dataList.append(tempList)
+        data = {'iTotalRecords': total_record, 'iTotalDisplayRecords': len(dataList), 'aaData': dataList}
+        print 'data', data
+        return HttpResponse(json.dumps(data), content_type='application/json')
+    except Exception,e:
+        print 'Exception|getlist|view.py', e
+
+def LineChart(request):
+    try:
+
+        dataDownloadLinks = DataDownloadLinks.objects.filter(region=request.GET.get('region'))
+
+        maxTemp = dataDownloadLinks.objects.filter(datatype=DataType.objects.get(datatype='Max temp')).first()
+        minTemp = dataDownloadLinks.objects.filter(datatype=DataType.objects.get(datatype='Min temp')).first()
+        #meanTemp = dataDownloadLinks.objects.filter(datatype=DataType.objects.get(datatype='Mean temp')).first()
+
+        mamTempData = Data.objects.filter(datadownload=maxTemp).aggregate(Sum('jan'),Sum('feb'),Sum('mar'),Sum('apr'),Sum('may'),Sum('jun'),Sum('jul'),Sum('aug'),Sum('sep'),Sum('oct'),Sum('nov'),Sum('dec'))
+        #for mean in mamTempData:
+
+
 
     except Exception,e:
-        print 'Exception|download|e',e
+        print 'Exception|getlist|view.py', e

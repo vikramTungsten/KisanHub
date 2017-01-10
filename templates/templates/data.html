@@ -8,7 +8,7 @@
     <div class="row">
         <div class="col-md-5 col-xs-12">
             <label for="heard">Select Region</label>
-            <select id="region_select" class="form-control" required>
+            <select id="region_select" onchange="select_nochange()" class="form-control" required>
                 {% for region in regions %}
                 <option value="{{region.id}}">{{region.region}}</option>
                 {% endfor %}
@@ -18,7 +18,7 @@
 
         <div class="col-md-5 col-xs-12">
             <label for="heard">Heard us by *:</label>
-            <select id="datatype_select" class="form-control" required>
+            <select id="datatype_select" onchange="select_nochange()" class="form-control" required>
             {% for dt in dataType %}
                 <option value="{{dt.id}}">{{dt.datatype}}</option>
             {% endfor %}
@@ -50,10 +50,7 @@
                     {% include "datatable.html" %}
                 </div>
                 <div role="tabpanel" class="tab-pane fade" id="tab_content2" aria-labelledby="profile-tab">
-                    <p>Food truck fixie locavore, accusamus mcsweeney's marfa nulla single-origin coffee squid.
-                        Exercitation +1 labore velit, blog sartorial PBR leggings next level wes anderson artisan four
-                        loko farm-to-table craft beer twee. Qui photo
-                        booth letterpress, commodo enim craft beer mlkshk aliquip</p>
+                    {% include "report.html" %}
                 </div>
             </div>
 
@@ -61,8 +58,18 @@
     </div>
 </div>
 <!-- /page content -->
+{% endblock %}
+
+{% block jsblock %}
+<script src="{% static 'vendors/datatables.net/js/jquery.dataTables.min.js'%}"></script>
+<script src="{% static 'vendors/datatables.net-bs/js/dataTables.bootstrap.min.js'%}"></script>
+
+<script src="{% static 'vendors/jszip/dist/jszip.min.js'%}"></script>
+<script src="{% static 'vendors/pdfmake/build/pdfmake.min.js'%}"></script>
+<script src="{% static 'vendors/pdfmake/build/vfs_fonts.js'%}"></script>
 
 <script src="{% static 'customjs/download.js'%}"></script>
+
 {% endblock %}
 
 

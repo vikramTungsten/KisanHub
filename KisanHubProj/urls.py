@@ -11,5 +11,6 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^data/', views.data),
     url(r'^download/', views.download),
+    url(r'^get-region-datalist/', views.get_region_datalist),
     url(r'^$', views.index),
 ]
