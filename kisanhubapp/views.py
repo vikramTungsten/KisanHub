@@ -1,4 +1,5 @@
 import json
+import pdb
 import urllib2
 
 from django.db.models import Sum
@@ -9,14 +10,29 @@ from kisanhubapp.models import Regions, DataType, DataDownloadLinks, Data
 
 
 def index(request):
-    return render(request, 'index01.html', {})
+    total_records=Data.objects.filter().count()
+    regions =  Regions.objects.filter()
+
+    uk=regions.filter(region='UK').first()
+    england = regions.filter(region='England').first()
+    wales = regions.filter(region='Wales').first()
+    scotland = regions.filter(region='Scotland').first()
+
+    uk_total = Data.objects.filter(datadownload__region=uk).count()
+    england_total = Data.objects.filter(datadownload__region=england).count()
+    wales_total = Data.objects.filter(datadownload__region=wales).count()
+    scotland_total = Data.objects.filter(datadownload__region=scotland).count()
+
+    data={'total_records':total_records,'uk_total':uk_total,'england_total':england_total,'wales_total':wales_total,'scotland_total':scotland_total}
+
+    return render(request, 'index01.html',data)
 
 
 def data(request):
     regions = Regions.objects.filter(is_deleted=False)
     dataType = DataType.objects.filter(is_deleted=False)
-    yearList=[str(year['year']) for year in Data.objects.order_by('-year').values('year').distinct()]
-    return render(request, 'data.html', {'regions': regions, 'dataType': dataType,'yearList':yearList})
+    yearList = [str(year['year']) for year in Data.objects.order_by('-year').values('year').distinct()]
+    return render(request, 'data.html', {'regions': regions, 'dataType': dataType, 'yearList': yearList})
 
 
 def download(request):
@@ -35,7 +51,7 @@ def download(request):
         data = con.read()
 
         lines = data.split('\n')[8:]
-        for line in lines[:5]:
+        for line in lines:
             templist = []
             datapoints = line.split(' ')
             for datapoint in datapoints:
@@ -89,7 +105,6 @@ def get_region_datalist(request):
         print 'dataListQR', dataListQR
         total_record = Data.objects.filter(datadownload=dataDownloadLinks).count()
 
-
         dataList = []
         for data in dataListQR:
             tempList = []
@@ -112,55 +127,95 @@ def get_region_datalist(request):
             tempList.append(data.aut)
             tempList.append(data.ann)
             dataList.append(tempList)
-        data = {'iTotalRecords': total_record, 'iTotalDisplayRecords': len(dataList), 'aaData': dataList}
+        data = {'iTotalRecords': total_record, 'iTotalDisplayRecords': total_record, 'aaData': dataList}
         print 'data', data
         return HttpResponse(json.dumps(data), content_type='application/json')
     except Exception, e:
         print 'Exception|getlist|view.py', e
 
 
-def getTemprature(request):
+def getTempratureTrend(request):
     try:
-        print '=================<<<'
-        Months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
-
         dataDownloadLinks = DataDownloadLinks.objects.filter(region=request.GET.get('region'))
 
-        maxTemp = dataDownloadLinks.filter(datatype=DataType.objects.get(datatype='Max temp')).first()
-        minTemp = dataDownloadLinks.filter(datatype=DataType.objects.get(datatype='Min temp')).first()
-        meanTemp = dataDownloadLinks.filter(datatype=DataType.objects.get(datatype='Mean temp')).first()
+        maxTempList = getTempratures('Max temp', dataDownloadLinks, request.GET.get('year'))
+        minTempList = getTempratures('Min temp', dataDownloadLinks, request.GET.get('year'))
+        meanTempList = getTempratures('Mean temp', dataDownloadLinks, request.GET.get('year'))
 
-        maxTempData = Data.objects.filter(datadownload=maxTemp).aggregate(jan=Sum('jan'), feb=Sum('feb'),
-                                                                          mar=Sum('mar'), apr=Sum('apr'),may=Sum('may'),
-                                                                          jun=Sum('jun'), jul=Sum('jul'), aug=Sum('aug'),
-                                                                          sep=Sum('sep'), oct=Sum('oct'), nov=Sum('nov'),
-                                                                          dec=Sum('dec'))
-
-        minTempData = Data.objects.filter(datadownload=minTemp).aggregate(jan=Sum('jan'), feb=Sum('feb'),
-                                                                          mar=Sum('mar'), apr=Sum('apr'),may=Sum('may'),
-                                                                          jun=Sum('jun'), jul=Sum('jul'), aug=Sum('aug'),
-                                                                          sep=Sum('sep'), oct=Sum('oct'), nov=Sum('nov'),
-                                                                          dec=Sum('dec'))
-
-        meanTempData = Data.objects.filter(datadownload=meanTemp).aggregate(jan=Sum('jan'), feb=Sum('feb'),
-                                                                          mar=Sum('mar'), apr=Sum('apr'),may=Sum('may'),
-                                                                          jun=Sum('jun'), jul=Sum('jul'), aug=Sum('aug'),
-                                                                          sep=Sum('sep'), oct=Sum('oct'), nov=Sum('nov'),
-                                                                          dec=Sum('dec'))
-
-
-
-        print 'meanTempData===gdfgdfgd>',meanTempData
-
-        maxTempList = [maxTempData[month] for month in Months]
-        minTempList = [minTempData[month] for month in Months]
-        meanTempList = [meanTempData[month] for month in Months]
-        print 'maxTempList===>',meanTempList
-        data={'success': 'true','maxTemp':maxTempList,'minTemp':minTempList,'meanTemp':meanTempList}
+        data = {'success': 'true', 'maxTemp': maxTempList, 'minTemp': minTempList, 'meanTemp': meanTempList}
         return HttpResponse(json.dumps(data), content_type='application/json')
 
-        print 'maxTempList',maxTempList
+        print 'maxTempList', maxTempList
     except Exception, e:
         print 'Exception|getTemprature|view.py', e
+
+
+def getRainFallData(request):
+    try:
+        #pdb.set_trace()
+        print '===========getRainFallData',request.GET
+        dataDownloadLinks = DataDownloadLinks.objects.filter(region=request.GET.get('region'),datatype=DataType.objects.get(datatype=request.GET.get('datatype'))).first()
+        print 'dataDownloadLinks==>',dataDownloadLinks
+
+        sessionData = getRainFall(dataDownloadLinks, request.GET.get('year'))
+        data = {'success': 'true', 'sessionData': sessionData}
+
+        print '++++++++++++++',data
+        return HttpResponse(json.dumps(data), content_type='application/json')
+        print 'maxTempList', maxTempList
+    except Exception, e:
+        print 'Exception|getRainFallData|view.py', e
+
+
+def getRainFall(dataLink, year):
+    try:
+        sessions = ['win', 'spr', 'sum', 'aut']
+        if year == 'All':
+            sessionData = Data.objects.filter(datadownload=dataLink).aggregate(win=Sum('win'), spr=Sum('spr'),
+                                                                               sum=Sum('sum'), aut=Sum('aut'))
+        else:
+            sessionData = Data.objects.filter(datadownload=dataLink, year=year).aggregate(win=Sum('win'),
+                                                                                          spr=Sum('spr'),
+                                                                                          sum=Sum('sum'),
+                                                                                          aut=Sum('aut'))
+
+        sessionList = [sessionData[session] for session in sessions]
+        return sessionList
+    except Exception, e:
+        print 'Exception|getRainFall|view.py', e
+
+
+def getTempratures(datatype, dataDownloadLinks, year):
+    try:
+        Months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+        dataLink = dataDownloadLinks.filter(datatype=DataType.objects.get(datatype=datatype)).first()
+        if year == 'All':
+            TempData = Data.objects.filter(datadownload=dataLink).aggregate(jan=Sum('jan'), feb=Sum('feb'),
+                                                                            mar=Sum('mar'), apr=Sum('apr'),
+                                                                            may=Sum('may'),
+                                                                            jun=Sum('jun'), jul=Sum('jul'),
+                                                                            aug=Sum('aug'),
+                                                                            sep=Sum('sep'), oct=Sum('oct'),
+                                                                            nov=Sum('nov'),
+                                                                            dec=Sum('dec'))
+        else:
+            TempData = Data.objects.filter(datadownload=dataLink, year=year).aggregate(jan=Sum('jan'), feb=Sum('feb'),
+                                                                                       mar=Sum('mar'), apr=Sum('apr'),
+                                                                                       may=Sum('may'),
+                                                                                       jun=Sum('jun'), jul=Sum('jul'),
+                                                                                       aug=Sum('aug'),
+                                                                                       sep=Sum('sep'), oct=Sum('oct'),
+                                                                                       nov=Sum('nov'),
+                                                                                       dec=Sum('dec'))
+
+        tempList = [TempData[month] for month in Months]
+        return tempList
+    except Exception, e:
+        print 'Exception|getTempratures|view.py', e
+
+
+
+
+
 
 

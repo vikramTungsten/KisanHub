@@ -1,7 +1,7 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 
-from kisanhubapp import views
+from kisanhubapp import views,dashboard
 
 urlpatterns = [
     # Examples:
@@ -12,6 +12,8 @@ urlpatterns = [
     url(r'^data/', views.data),
     url(r'^download/', views.download),
     url(r'^get-region-datalist/', views.get_region_datalist),
-    url(r'^get-temprature/', views.getTemprature),
+    url(r'^get-temprature/', views.getTempratureTrend),
+    url(r'^get-rainfall-data/', views.getRainFallData),
+    url(r'^session-comparison/', dashboard.session_comparison),
     url(r'^$', views.index),
 ]

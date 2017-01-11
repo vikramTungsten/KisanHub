@@ -1,6 +1,12 @@
 $(document).ready(function() {
     get_table_initilize();
-    set_reports();
+    set_temprature_trend('All');
+    set_rainfall_paichart('All');
+    $('#year_select').val('All');
+    $("#region_lbl").text($("#region_select option:selected").text());
+    $("#datatype_lbl").text($("#datatype_data_select option:selected").text());
+
+
 });
 
 function download() {
@@ -15,7 +21,9 @@ function download() {
             if (response.success == 'true') {
                 alert('Downloaded successfully!')
                 get_table_initilize();
-                set_reports();
+                set_temprature_trend('All');
+                set_rainfall_paichart('All');
+                $('#year_select').val('All');
             } else {
                 alert('Server Error !')
             }
@@ -35,10 +43,25 @@ function download() {
 }
 
 function select_nochange() {
-    get_table_initilize()
-    set_reports()
+    get_table_initilize();
+    set_temprature_trend('All');
+    set_rainfall_paichart('All');
+    $('#year_select').val('All');
     $("#region_lbl").text($("#region_select option:selected").text());
 }
+
+function year_select_nochange() {
+    set_temprature_trend($('#year_select').val())
+    set_rainfall_paichart($('#year_select').val());
+}
+
+function datatype_nochange() {
+    set_rainfall_paichart($('#year_select').val());
+    $("#datatype_lbl").text($("#datatype_data_select option:selected").text());
+}
+
+
+
 
 function get_table_initilize() {
     var table = $('#datatable').dataTable({
@@ -57,20 +80,50 @@ function get_table_initilize() {
 }
 
 
-function set_reports() {
+function set_temprature_trend(year) {
     $.ajax({
         type: "GET",
         url: "/get-temprature/",
         'data': {
             'region': $('#region_select').val(),
-            'datatype': $('#datatype_select').val()
+            'datatype': $('#datatype_select').val(),
+            'year':year
         },
-        success: function(response) {
-            console.log(response)
-            console.log(response.success)
+        success: function(response) {           
             if (response.success == 'true') {
                 console.log(response.maxTemp)
                 LineChart(response.maxTemp,response.minTemp,response.meanTemp);
+            } else {
+                alert('Server Error !')
+            }
+        },
+        error: function(response) {
+            console.log('error');
+            console.log('response', response);
+        },
+           beforeSend: function() {
+            $("#processing").show();
+            },
+            complete: function() {
+            $("#processing").hide();
+            }
+    });
+}
+
+
+
+function set_rainfall_paichart(year){
+    $.ajax({
+        type: "GET",
+        url: "/get-rainfall-data/",
+        'data': {
+            'region': $('#region_select').val(),
+            'datatype': $('#datatype_data_select').val(),
+            'year':year
+        },
+        success: function(response) {
+            if (response.success == 'true') {
+                PaiChart(response.sessionData);
             } else {
                 alert('Server Error !')
             }
@@ -97,7 +150,6 @@ Chart.defaults.global.legend = {
 
 // Line chart
 function LineChart(maxTemp, minTemp, meanTemp) {
-
     var ctx = document.getElementById("lineChart");
     var lineChart = new Chart(ctx, {
         type: 'line',
@@ -139,36 +191,36 @@ function LineChart(maxTemp, minTemp, meanTemp) {
             ]
         },
     });
-
-
-
-
 }
 
-// Bar chart
-var ctx = document.getElementById("mybarChart");
-var mybarChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: ["January", "February", "March", "April", "May", "June", "July"],
-        datasets: [{
-            label: '# of Votes',
-            backgroundColor: "#26B99A",
-            data: [51, 30, 40, 28, 92, 50, 45]
-        }, {
-            label: '# of Votes',
-            backgroundColor: "#03586A",
-            data: [41, 56, 25, 48, 72, 34, 12]
-        }]
-    },
 
-    options: {
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true
-                }
-            }]
+function PaiChart(sessionData) {
+  // Pie chart
+      var ctx = document.getElementById("pieChart");
+      var data = {
+        datasets: [{
+          data: sessionData,
+          backgroundColor: [
+            "#455C73",
+            "#9B59B6",
+            "#BDC3C7",
+            "#26B99A"
+          ],
+          label: 'Session Data' // for legend
+        }],
+        labels: [
+          "Winter",
+          "Spring",
+          "Summer",
+          "Autumn"
+        ]
+      };
+
+      var pieChart = new Chart(ctx, {
+        data: data,
+        type: 'pie',
+        otpions: {
+          legend: true
         }
-    }
-});
+      });
+}
