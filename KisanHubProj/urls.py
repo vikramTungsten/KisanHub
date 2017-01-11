@@ -12,5 +12,6 @@ urlpatterns = [
     url(r'^data/', views.data),
     url(r'^download/', views.download),
     url(r'^get-region-datalist/', views.get_region_datalist),
+    url(r'^get-temprature/', views.getTemprature),
     url(r'^$', views.index),
 ]

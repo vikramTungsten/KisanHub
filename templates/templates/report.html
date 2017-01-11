@@ -3,10 +3,22 @@
 <div class="">
     <div class="page-title">
         <div class="title_left">
-            <h3>Chart Js
-                <small>Some examples to get you started</small>
+            <h3>Visuals (Reports) For the <i id="region_lbl"></i>
             </h3>
+            <small> To see the other Region Report, Please cheange the Region From above dropdown</small>
         </div>
+
+        <div class="title_right">
+            <label for="heard">Select Year</label>
+            <select id="region_select" onchange="select_nochange()" class="form-control" required>
+                <option value="All">All</option>
+                {% for year in yearList %}
+                <option value="{{year}}">{{year}}</option>
+                {% endfor %}
+            </select>
+
+        </div>
+
     </div>
 
     <div class="clearfix"></div>
@@ -16,8 +28,8 @@
         <div class="col-md-6 col-sm-6 col-xs-12">
             <div class="x_panel">
                 <div class="x_title">
-                    <h2>Line graph
-                        <small>Sessions</small>
+                    <h2>Temperature Trend
+                        <small>[Max,Min,Mean]</small>
                     </h2>
                     <ul class="nav navbar-right panel_toolbox">
                         <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
