@@ -34,6 +34,40 @@ def session_comparison(request):
         walesSessionData = getRainFall(walesDownloadLinks)
         scotlandSessionData = getRainFall(scotlandDownloadLinks)
 
+        winter={'uk':ukSessionData[0],'england':englandSessionData[0],'wales':walesSessionData[0],'scotland':scotlandSessionData[0]}
+        summer={'uk':ukSessionData[2],'england':englandSessionData[2],'wales':walesSessionData[2],'scotland':scotlandSessionData[2]}
+
+        temp,i=0,0
+        coolest_place=""
+        for k,v in winter.items():
+            if v:
+                if i==0:
+                    temp=v
+                    coolest_place=k
+                    i=i+1
+                elif temp > v:
+                    temp=v
+                    coolest_place=k
+
+        temp,i=0,0
+        coolest_place=""
+        for k,v in winter.items():
+            if v:
+                if i==0:
+                    temp=v
+                    coolest_place=k
+                    i=i+1
+                elif temp > v:
+                    temp=v
+                    coolest_place=k
+
+
+
+
+
+
+
+
         data = {'success': 'true', 'ukSessionData': ukSessionData, 'englandSessionData': englandSessionData,
                 'walesSessionData': walesSessionData, "scotlandSessionData": scotlandSessionData}
 
