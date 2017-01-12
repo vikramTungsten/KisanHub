@@ -64,8 +64,8 @@ def session_comparison(request):
         print 'coolest_place===>',coolest_place,coolest_temp
         print 'hotest_place===>', hotest_place, hotest_temp
 
-        coolest ="Coolest Reasion is " +coolest_place
-        hotest = "Hotest Reasion is " + hotest_place
+        coolest ="Coldest Region is " +coolest_place
+        hotest = "Hottest Region is " + hotest_place
 
 
         data = {'success': 'true', 'ukSessionData': ukSessionData, 'englandSessionData': englandSessionData,
