@@ -11,6 +11,10 @@ function session_comparison() {
         success: function(response) {
             if (response.success == 'true') {
                 barchart(response.ukSessionData,response.englandSessionData,response.walesSessionData,response.scotlandSessionData)
+            $('#coolest_lbl').text(response.coolest)
+            $('#hotest_lbl').text(response.hotest)
+
+
             } else {
                 alert('Server Error !')
             }

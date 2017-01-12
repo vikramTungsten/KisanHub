@@ -37,39 +37,39 @@ def session_comparison(request):
         winter={'uk':ukSessionData[0],'england':englandSessionData[0],'wales':walesSessionData[0],'scotland':scotlandSessionData[0]}
         summer={'uk':ukSessionData[2],'england':englandSessionData[2],'wales':walesSessionData[2],'scotland':scotlandSessionData[2]}
 
-        temp,i=0,0
-        coolest_place=""
+        coolest_temp,i=0,0
+        coolest_place=None
         for k,v in winter.items():
             if v:
                 if i==0:
-                    temp=v
+                    coolest_temp=v
                     coolest_place=k
                     i=i+1
-                elif temp > v:
-                    temp=v
+                elif coolest_temp > v:
+                    coolest_temp=v
                     coolest_place=k
 
-        temp,i=0,0
-        coolest_place=""
-        for k,v in winter.items():
+        hotest_temp, i = 0, 0
+        hotest_place = None
+        for k, v in summer.items():
             if v:
-                if i==0:
-                    temp=v
-                    coolest_place=k
-                    i=i+1
-                elif temp > v:
-                    temp=v
-                    coolest_place=k
+                if i == 0:
+                    hotest_temp = v
+                    hotest_place = k
+                    i = i + 1
+                elif hotest_temp < v:
+                    hotest_temp = v
+                    hotest_place = k
 
+        print 'coolest_place===>',coolest_place,coolest_temp
+        print 'hotest_place===>', hotest_place, hotest_temp
 
-
-
-
-
+        coolest ="Coolest Reasion is " +coolest_place
+        hotest = "Hotest Reasion is " + hotest_place
 
 
         data = {'success': 'true', 'ukSessionData': ukSessionData, 'englandSessionData': englandSessionData,
-                'walesSessionData': walesSessionData, "scotlandSessionData": scotlandSessionData}
+                'walesSessionData': walesSessionData, "scotlandSessionData": scotlandSessionData,'coolest':coolest,'hotest':hotest}
 
         print 'data',data
 
