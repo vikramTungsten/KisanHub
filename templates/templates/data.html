@@ -7,7 +7,7 @@
 
     <div class="row">
         <div class="col-md-5 col-xs-12">
-            <label for="heard">Year</label>
+            <label for="heard">Year:</label>
             <select id="region_select" onchange="select_nochange()" class="form-control" required>
                 {% for region in regions %}
                 <option value="{{region.id}}">{{region.region}}</option>
@@ -16,7 +16,7 @@
         </div>
 
         <div class="col-md-5 col-xs-12">
-            <label for="heard">Heard us by *:</label>
+            <label for="heard">Data Type:</label>
             <select id="datatype_select" onchange="select_nochange()" class="form-control" required>
             {% for dt in dataType %}
                 <option value="{{dt.id}}">{{dt.datatype}}</option>
